@@ -38,4 +38,4 @@ jobs:
         access-key-id: ${{ secrets.ALIYUN_ACCESS_KEY_ID }}
         access-key-secret: ${{ secrets.ALIYUN_ACCESS_KEY_SECRET }}
     - name: Upload files to OSS
-      run: ossutil cp -rf ./user oss://xyzsas/
+      run: ossutil cp -rf ./user oss://xyzsas/user/
