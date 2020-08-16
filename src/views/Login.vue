@@ -3,7 +3,7 @@
     <v-card class="form" :style="formStyle">
       <h1>学生事务系统</h1>
       <h3>{{ tip }}</h3>
-      <v-text-field ref="input" style="width: 250px;" :label="label" :type="step" outlined v-model="input" :error-messages="error" @keyup.enter="next"></v-text-field>
+      <v-text-field ref="input" style="width: 250px;" :label="label" :type="step" outlined rounded v-model="input" :error-messages="error" :messages="messages" @keyup.enter="next"></v-text-field>
       <v-btn :disabled="!input" fab color="primary" @click="next" :loading="loading">
         <v-icon>{{ icon }}</v-icon>
       </v-btn>
@@ -48,6 +48,11 @@ export default {
     icon () {
       if (this.step === 'username') return 'mdi-arrow-right'
       else return 'mdi-check'
+    },
+    messages () {
+      if (!this.loading) return ''
+      if (this.step === 'username') return '安全检查中，请耐心等待'
+      else return '正在验证您的身份...'
     }
   },
   methods: {
@@ -129,6 +134,7 @@ export default {
   .form {
     height: 310px;
     padding: 30px 100px;
+    margin-bottom: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
