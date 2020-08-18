@@ -1,5 +1,6 @@
 <template>
   <div class="password">
+    <h1 v-if="title.length > 0">{{ title }}</h1>
     <v-card class="form" :style="formStyle">
       <h1>修改密码</h1>
       <h3>输入原密码</h3>
@@ -40,6 +41,7 @@ export default {
   name: 'Password',
   data: () => ({
     loading: false,
+    title: '',
     Oerror: '',
     Nerror: '',
     Cerror: '',
@@ -96,13 +98,15 @@ export default {
         return
       }
       try {
-        const { data } = await this.$ajax.put('/user/auth', {
+        await this.$ajax.put('/user/auth', {
           random: this.random,
           password: sha256(hash2(this.Opwd) + this.random),
-          newPassword: sha256(hash2(this.Npwd) + this.random)
+          newPassword: hash2(this.Npwd)
         })
-        console.log(data)
+        delete SS.token
         this.formStyle = 'opacity: 0;'
+        this.title = '修改密码成功，请重新登录'
+        await new Promise(r => setTimeout(r, 2000));
         window.location.href = '/'
       } catch (err) {
         this.Cerror = '网络错误'
