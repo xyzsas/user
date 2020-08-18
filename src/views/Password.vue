@@ -2,23 +2,20 @@
   <div class="password">
     <h1 v-if="title.length > 0">{{ title }}</h1>
     <v-card class="form" :style="formStyle">
-      <h1>修改密码</h1>
-      <h3>输入原密码</h3>
-      <v-text-field ref="Opwd" style="width: 250px;" label="原密码" type="password" outlined rounded v-model="Opwd" :error-messages="Oerror" @keyup.enter="$refs.Npwd.focus"></v-text-field>
-      <h3>输入新密码</h3>
-      <v-text-field ref="Npwd" style="width: 250px;" label="新密码" type="password" loading outlined rounded v-model="Npwd" :error-messages="Nerror" @keyup.enter="$refs.Cpwd.focus">
+      <h2>修改密码</h2>
+      <v-text-field ref="Opwd" style="width: 250px;" label="原密码" type="password" outlined dense v-model="Opwd" :error-messages="Oerror" :messages="messages" hint="请输入原始密码" @keyup.enter="$refs.Npwd.focus"></v-text-field>
+      <v-text-field ref="Npwd" style="width: 250px;" label="新密码" type="password" loading outlined dense v-model="Npwd" hint="推荐使用八位以上的复杂密码" :error-messages="Nerror" @keyup.enter="$refs.Cpwd.focus">
         <template v-slot:progress>
           <v-progress-linear
             :value="progress"
             :color="color"
             absolute
-            style="margin-top: 20px"
+            style="margin-top: -3px; border-radius: 10px;"
             height="4"
           ></v-progress-linear>
         </template>
       </v-text-field>
-      <h3>确认新密码</h3>
-      <v-text-field ref="Cpwd" style="width: 250px;" label="确认密码" type="password" outlined rounded v-model="Cpwd" :error-messages="Cerror" :messages="messages" @keyup.enter="next"></v-text-field>
+      <v-text-field ref="Cpwd" style="width: 250px;" label="确认密码" type="password" outlined dense v-model="Cpwd" :error-messages="Cerror" hint="请再次输入新密码" @keyup.enter="next"></v-text-field>
       <v-btn :disabled="!Opwd || !Npwd || !Cpwd" fab color="primary" @click="next" :loading="loading">
         <v-icon>mdi-check</v-icon>
       </v-btn>
@@ -53,7 +50,7 @@ export default {
   }),
   mounted() {
     const SS = window.sessionStorage
-    if (SS.token === undefined) window.location.href = '/'
+    if (SS.id === undefined) window.location.href = '/'
   },
   computed: {
     messages () {
@@ -61,9 +58,8 @@ export default {
       return '正在验证...'
     },
     progress () {
-      let base = 0;
       if (this.Npwd.length < 8) return this.Npwd.length * 2
-      base = 20
+      let base = 20
       if (this.Npwd.match(/([a-z])+/)) base += 20
       if (this.Npwd.match(/([0-9])+/)) base += 20
       if (this.Npwd.match(/([A-Z])+/)) base += 20
@@ -74,6 +70,17 @@ export default {
     color () {
       return ['error', 'warning', 'success'][Math.floor(this.progress / 40)]
     },
+  },
+  watch: {
+    Opwd () {
+      this.Oerror = ''
+    },
+    Npwd () {
+      this.Nerror = ''
+    },
+    Cpwd () {
+      this.Cerror = ''
+    }
   },
   methods: {
     async next() {
@@ -93,7 +100,7 @@ export default {
         const res = await this.$ajax.get('/user/auth?id=' + SS.id)
         this.random = res.data;
       } catch {
-        this.Cerror = '网络错误，请稍后重试'
+        this.Oerror = '网络错误，请稍后重试'
         this.loading = false
         return
       }
@@ -109,13 +116,8 @@ export default {
         await new Promise(r => setTimeout(r, 2000));
         window.location.href = '/'
       } catch (err) {
-        this.Cerror = '网络错误'
-        if (err.response) this.Cerror = err.response.data
-        await new Promise(r => setTimeout(r, 3000));
-        this.Cerror = ''
-        this.Opwd = ''
-        this.Npwd = ''
-        this.Cpwd = ''
+        this.Oerror = '网络错误'
+        if (err.response) this.Oerror = err.response.data
       }
       this.loading = false
     },
@@ -136,15 +138,12 @@ export default {
     text-align: center;
   }
 
-  h3 {
-    position: relative;
-    width: 100%;
-    color: #555;
-    margin: 10px 0 20px;
+  h2 {
+    margin-bottom: 20px;
   }
 
   .form {
-    height: 580px;
+    height: 400px;
     padding: 30px 100px;
     margin-bottom: 50px;
     display: flex;
