@@ -30,6 +30,7 @@ export default {
   name: 'Login',
   data: () => ({
     loading: false,
+    success: false,
     error: '',
     formStyle: '',
     input: '',
@@ -51,6 +52,7 @@ export default {
     },
     messages () {
       if (!this.loading) return ''
+      if (this.success) return '登录成功，正在跳转...'
       if (this.step === 'username') return '安全检查中，请耐心等待'
       else return '正在验证您的身份...'
     }
@@ -86,15 +88,18 @@ export default {
           random: this.random,
           password: sha256(hash2(this.input) + this.random)
         })
-        this.input = ''
         const SS = window.sessionStorage
         SS.token = data.token
         SS.name = data.user.name
         SS.id = data.user.id
         SS.group = data.user.group
         SS.role = data.user.role
+        SS.phone = data.user.phone
+        this.success = true
+        await new Promise(r => setTimeout(r, 1000));
         this.formStyle = 'opacity: 0;'
-        window.location.href = '/index.html'
+        await new Promise(r => setTimeout(r, 500));
+        window.location.href = this.$route.query.c || '/'
       } catch (err) {
         this.error = '网络错误'
         if (err.response) this.error = err.response.data
