@@ -69,7 +69,7 @@ export default {
       this.input = this.input.toUpperCase()
       const id = hash1(this.input)
       try {
-        const res = await this.$ajax.get('/user/auth?id=' + id)
+        const res = await this.$ajax.get('/user/auth?id=' + encodeURIComponent(id))
         this.random = res.data;
       } catch {
         this.error = '网络错误，请稍后重试'

@@ -97,7 +97,7 @@ export default {
       }
       const SS = window.sessionStorage
       try {
-        const res = await this.$ajax.get('/user/auth?id=' + SS.id)
+        const res = await this.$ajax.get('/user/auth?id=' + encodeURIComponent(SS.id))
         this.random = res.data;
       } catch {
         this.Oerror = '网络错误，请稍后重试'
