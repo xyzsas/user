@@ -1,20 +1,28 @@
 <template>
   <div class="user">
-    <v-row style="width: 450px">
-      <v-col><v-text-field ref="id" style="width: 300px;" label="用户ID" type="text" outlined dense v-model="id" :error-messages="error" hint="请输入需查询的用户ID" @keyup.enter="search"></v-text-field></v-col>
-      <v-col><v-btn color="primary" @click="search" :loading="loading"><v-icon>mdi-magnify</v-icon></v-btn></v-col>
+    <v-row style="width: 100%; max-width: 500px;">
+      <v-text-field label="用户ID" type="text" outlined v-model="id" :error-messages="error" hint="请输入需查询的用户名" @keyup.enter="search"></v-text-field>
+      <v-btn color="primary" @click="search" fab :disabled="!id" :loading="searchLoading" style="margin-left: 20px;">
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
     </v-row>
-    <h2>用户信息</h2>
-    <br>
-    <v-text-field ref="name" outlined style="width: 300px;" type="text" v-model="update.name" :error-messages="errorMessages" :disabled="disable" label="姓名"></v-text-field>
-    <v-text-field ref="group" outlined style="width: 300px;" type="text" v-model="update.group" label="用户组" disabled></v-text-field>
-    <v-text-field ref="role" outlined style="width: 300px;" type="text" v-model="update.role" :error-messages="errorMessages" :disabled="disable" label="角色"></v-text-field>
-    <v-text-field ref="phone" outlined style="width: 300px;" type="text" v-model="update.phone" :error-messages="errorMessages" :disabled="disable" label="手机"></v-text-field>
-    <v-checkbox ref="pwd" v-model="update.pwd" :disabled="disable" label="重置密码"></v-checkbox>
-    <p style="font-size: 0.8rem"  :style="style" v-if="tip">{{ tip }}</p>
-    <v-btn style="width: 100px" color="primary" @click="submit" :disabled="disable">
-      <v-icon>mdi-check</v-icon>
-    </v-btn>
+    <v-card v-if="user" style="padding: 20px 30px;">
+      <v-card-title>用户信息</v-card-title>
+      <v-text-field outlined style="width: 300px;" type="text" v-model="user.name" disabled label="姓名"></v-text-field>
+      <v-text-field outlined style="width: 300px;" type="text" v-model="user.group" label="用户组" disabled></v-text-field>
+      <v-text-field outlined style="width: 300px;" type="text" v-model="user.role" :disabled="submitLoading" label="角色"></v-text-field>
+      <v-text-field outlined style="width: 300px;" type="text" v-model="user.phone" :disabled="submitLoading" label="手机"></v-text-field>
+      <v-checkbox v-model="reset" :disabled="submitLoading" label="重置密码为用户名"></v-checkbox>
+      <p style="font-size: 0.8rem"  :style="style" v-if="tip">{{ tip }}</p>
+      <v-row style="max-width: 400px;">
+        <v-col>
+          <v-btn color="secondary" @click="submit" :loading="submitLoading">修改用户信息</v-btn>
+        </v-col>
+        <v-col>
+          <v-btn color="error" @click="remove" :loading="submitLoading">删除用户</v-btn>
+        </v-col>
+      </v-row>
+    </v-card>
   </div>
 </template>
 
@@ -31,72 +39,68 @@ export default {
   data: () => ({
     id: '',
     error: '',
-    update: {
-      name: '',
-      group: '',
-      role: '',
-      phone: '',
-      pwd: '',
-    },
-    disable: true,
-    errorMessages: '',
-    loading: false,
+    reset: false,
+    user: null,
+    searchLoading: false,
+    submitLoading: false,
     tip: ' ',
     style: ''
   }),
   watch: {
     id () {
       this.error = ''
+      this.user = null
     }
   },
   methods: {
     async search() {
-      if (!this.id) {
-        this.error = '请输入用户ID'
-        return
-      }
       this.id = this.id.toUpperCase()
-      this.loading = true
-      try {
-        const res = await this.$ajax({
-          type: 'GET',
-          url: '/user/admin?id=' + encodeURIComponent(hash1(this.id)),
-          headers: {
-            'token': SS.token
-          }
-        })
-        this.update = res.data
-        this.disable = false
-      } catch (err) {
-        this.error = err.response.data
-      }
-      this.loading = false
+      this.searchLoading = true
+      await this.$ajax
+        .get('/user/admin?id=' + encodeURIComponent(hash1(this.id)), { headers: { 'token': SS.token } })
+        .then(resp => { this.user = resp.data })
+        .catch(err => { this.error = err.response.data })
+      this.searchLoading = false
+      this.$forceUpdate()
     },
     async submit() {
-      this.errorMessages = ''
-      this.tip = '正在提交请稍后'
+      this.tip = '正在更新用户数据...'
+      this.submitLoading = true
       let body = {
-        name: this.update.name,
-        role: this.update.role,
-        phone: this.update.phone
+        name: this.user.name,
+        role: this.user.role,
+        phone: this.user.phone
       }
-      if (this.update.pwd) body['password'] = "1"
-      console.log(body)
+      if (this.reset) body['password'] = "1"
       try {
         await this.$ajax({
           type: 'PUT',
           url: '/user/admin?id=' + encodeURIComponent(hash1(this.id)),
-          headers: {
-            'token': SS.token
-          },
+          headers: { 'token': SS.token },
           body: body
         })
-        this.tip = '提交成功!'
-        this.style = 'color: green'
+        this.tip = '更新用户信息成功!'
+        this.style = 'color: green;'
       } catch (err) {
-        this.tip = '提交失败!' + err.response.data
-        this.style = 'color: red'
+        this.tip = '更新用户信息失败: ' + err.response.data
+        this.style = 'color: red;'
       }
+      this.submitLoading = false
+    },
+    async remove () {
+      this.tip = '正在删除用户'
+      this.submitLoading = true
+      await this.$ajax
+        .delete('/user/admin?id=' + encodeURIComponent(hash1(this.id)), { headers: { 'token': SS.token } })
+        .then(() => {
+          this.tip = '删除用户成功!'
+          this.style = 'color: green;'
+        })
+        .catch(err => {
+          this.tip = '删除用户失败: ' + err.response.data
+          this.style = 'color: red;'
+        })
+      this.submitLoading = false
     }
   }
 }
@@ -104,6 +108,6 @@ export default {
 
 <style scoped>
   div.user {
-    padding: 30px 50px;
+    padding: 30px;
   }
 </style>
