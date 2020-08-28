@@ -11,7 +11,7 @@
         <v-btn icon v-if="!item.children" @click="show(item)">
           <v-icon>mdi-account</v-icon>
         </v-btn>
-        <v-btn icon v-if="!item.id" @click="deleteGroup(item)" color="error">
+        <v-btn icon v-if="!item.id" @click="dialog = true; message = item.group" color="error">
           <v-icon>mdi-trash-can-outline</v-icon>
         </v-btn>
       </template>
@@ -38,11 +38,14 @@
     </v-bottom-sheet>
     <v-dialog v-model="dialog" max-width="290">
       <v-card>
-        <v-card-title>用户管理</v-card-title>
-        <v-card-text>{{ message }}</v-card-text>
+        <v-card-title>删除用户组</v-card-title>
+        <v-card-text>请输入<strong>{{ message }}</strong>来确认</v-card-text>
+        <v-text-field outlined dense style="width:85%; margin-left: 7.5%" v-model="text"></v-text-field>
+        <v-card-text :style="style">{{ tip }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text @click="dialog = false">确定</v-btn>
+          <v-btn text color="error" @click="deleteGroup()" :disabled="message!==text" :loading="loading">确定</v-btn>
+          <v-btn text color="error" @click="dialog=false">关闭</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -59,15 +62,23 @@ export default {
     data: [],
     map: {},
     sheet: false,
-    list: []
+    list: [],
+    dialog: false,
+    message: '',
+    text: '',
+    error: '',
+    tip: '',
+    style: ''
   }),
-  mounted() {
+  mounted() { 
     if (SS.groups) return
     this.tree()
   },
   methods: {
     userInfo(item) {
-      console.log(item)
+      this.sheet = false
+      this.list = []
+      this.$emit('user', item.id)
     },
     parseTree() {
 
@@ -76,8 +87,22 @@ export default {
       this.sheet = true
       this.list = this.map[item.group]
     },
-    async deleteGroup(item) {
-      console.log(item)
+    async deleteGroup() {
+      this.loading = true
+      await this.$ajax
+        .delete(`/user/admin?id=${encodeURIComponent(this.message)}&group=1`, { headers: { 'token': SS.token } })
+        .then(() => {
+          this.tip = '删除用户组成功!'
+          this.style = 'color: green;'
+        })
+        .catch(err => {
+          this.tip = '删除用户组失败: ' + err.response.data
+          this.style = 'color: red;'
+        })
+      delete SS.groups
+      this.data = []
+      await this.tree()
+      this.loading = false
     },
     async tree() {
       try {
@@ -89,7 +114,7 @@ export default {
         for (const g in resp.data) {
           if (g === '/') continue
           const y = g.split('/')[1]
-          if (this.data.length === 0) this.data = [{ name: y, children: []}]
+          if (this.data.length === 0) this.data = [{ name: y, group: g, children: []}]
           for (let i = 0; i < this.data.length; i++) {
             if (y === this.data[i].name) {
               let cl = { 

@@ -46,6 +46,7 @@ export default {
   },
   methods: {
     user (uid) {
+      console.log('emit')
       this.tab = 2
       this.uid = uid
       this.random = Math.random()
