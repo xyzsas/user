@@ -13,8 +13,13 @@ Vue.use(VueRouter)
   {
     path: '/password',
     name: 'Password',
-    component: () => import ('../views/Password.vue')
-  }
+    component: () => import (/* webpackChunkName: "password" */ '../views/Password.vue')
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import (/* webpackChunkName: "admmin" */ '../views/Admin.vue')
+  },
 ]
 
 const router = new VueRouter({
