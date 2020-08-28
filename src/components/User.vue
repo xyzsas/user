@@ -86,7 +86,7 @@ export default {
       }
       if (this.reset) body['password'] = "1"
       try {
-        await this.$ajax.put('/user/admin?id=' + encodeURIComponent(hash1(this.id)), body, {
+        await this.$ajax.put('/user/admin?id=' + encodeURIComponent(this.id), body, {
             headers: { 'token': SS.token }
           })
         this.tip = '更新用户信息成功!'
