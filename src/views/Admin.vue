@@ -15,10 +15,10 @@
         <add></add>
       </v-tab-item>
       <v-tab-item key="user">
-        <user></user>
+        <user :uid="uid" :random="random"></user>
       </v-tab-item>
       <v-tab-item key="group">
-        <group></group>
+        <group @user="user"></group>
       </v-tab-item>
     </v-tabs-items>
   </div>
@@ -34,13 +34,22 @@ import Group from '@/components/Group.vue'
 export default {
   name: 'Admin',
   data: () => ({
-    tab: 'overview'
+    tab: 0,
+    uid: '',
+    random: 0
   }),
   components: {
     Overview, Add, User, Group
   },
   mounted () {
     if (SS.role !== 'ADMIN') window.location.href = '/index.html'
+  },
+  methods: {
+    user (uid) {
+      this.tab = 2
+      this.uid = uid
+      this.random = Math.random()
+    }
   }
 }
 </script>
