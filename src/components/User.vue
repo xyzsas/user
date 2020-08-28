@@ -1,7 +1,7 @@
 <template>
   <div class="user">
     <v-row style="width: 100%; max-width: 500px;">
-      <v-text-field label="用户ID" type="text" outlined v-model="id" :error-messages="error" hint="请输入需查询的用户名" @keyup.enter="search"></v-text-field>
+      <v-text-field label="用户名" type="text" outlined v-model="id" :error-messages="error" hint="请输入需查询的用户名" @keyup.enter="search"></v-text-field>
       <v-btn color="primary" @click="search" fab :disabled="!id" :loading="searchLoading" style="margin-left: 20px;">
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
@@ -74,7 +74,7 @@ export default {
       if (this.reset) body['password'] = "1"
       try {
         await this.$ajax({
-          type: 'PUT',
+          method: 'PUT',
           url: '/user/admin?id=' + encodeURIComponent(hash1(this.id)),
           headers: { 'token': SS.token },
           body: body
