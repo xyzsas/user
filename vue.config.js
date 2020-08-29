@@ -4,5 +4,6 @@ module.exports = {
   ],
 
   publicPath: '',
-  outputDir: 'user'
+  outputDir: 'user',
+  productionSourceMap: false
 }

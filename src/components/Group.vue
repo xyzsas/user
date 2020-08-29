@@ -1,17 +1,17 @@
 <template>
   <div class="group">
     <h2 v-if="!data.length">正在获取数据...</h2>
-    <p v-else>小括号内数字为用户数量</p>
+    <p v-else>右侧数字为用户组中的用户数，点击数字可查看用户姓名列表</p>
     <v-treeview
       :items="data"
       open-on-click
       hoverable
     >
       <template v-slot:append="{ item }">
-        <v-btn icon v-if="!item.children" @click="show(item)">
-          <v-icon>mdi-account</v-icon>
+        <v-btn text v-if="item.leaf" @click="show(item)">
+          {{ Object.keys(map[item['name']]).length }}
         </v-btn>
-        <v-btn icon v-if="!item.id" @click="dialog = true; message = item.group" color="error">
+        <v-btn icon v-if="!item.id" @click="dialog = true; message = item.name" color="error">
           <v-icon>mdi-trash-can-outline</v-icon>
         </v-btn>
       </template>
@@ -21,14 +21,14 @@
         <h2>用户列表</h2>
         <v-list style="height:80vh; overflow-y:auto">
           <v-list-item
-            v-for="item in list"
-            :key="item.id"
+            v-for="(value, name) in list"
+            :key="name"
           >
             <v-list-item-content>
-              <v-list-item-title v-text="item.name" />
+              <v-list-item-title v-text="value" />
             </v-list-item-content>
             <v-list-item-action>
-              <v-btn icon @click="userInfo(item)">
+              <v-btn icon @click="userInfo(name)">
                 <v-icon color="grey lighten-1">mdi-information</v-icon>
               </v-btn>
             </v-list-item-action>
@@ -39,13 +39,13 @@
     <v-dialog v-model="dialog" max-width="290">
       <v-card>
         <v-card-title>删除用户组</v-card-title>
-        <v-card-text>请输入<strong>{{ message }}</strong>来确认</v-card-text>
+        <v-card-text>您正在进行危险操作，删除用户组将会删除所有子用户组和所有用户！请输入<code>{{ message }}</code>来确认删除</v-card-text>
         <v-text-field outlined dense style="width:85%; margin-left: 7.5%" v-model="text"></v-text-field>
         <v-card-text :style="style">{{ tip }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text color="error" @click="deleteGroup()" :disabled="message!==text" :loading="loading">确定</v-btn>
-          <v-btn text color="error" @click="dialog=false">关闭</v-btn>
+          <v-btn text @click="dialog=false">关闭</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -62,7 +62,7 @@ export default {
     data: [],
     map: {},
     sheet: false,
-    list: [],
+    list: {},
     dialog: false,
     message: '',
     text: '',
@@ -71,21 +71,30 @@ export default {
     style: ''
   }),
   mounted() { 
-    if (SS.groups) return
     this.tree()
   },
   methods: {
     userInfo(item) {
       this.sheet = false
       this.list = []
-      this.$emit('user', item.id)
+      this.$emit('user', item)
     },
     parseTree() {
-
+    },
+    traverse(array, index, root) {
+      if (root === undefined) {
+        root = []
+      }
+      for (let i = 0; i < root.length; i++) {
+        if (root[i]['short'] === array[index]) {
+          return this.traverse(array, index + 1, root[i]['children'])
+        }
+      }
+      return {'index': index, 'root': root}
     },
     show(item) {
       this.sheet = true
-      this.list = this.map[item.group]
+      this.list = this.map[item.name]
     },
     async deleteGroup() {
       this.loading = true
@@ -99,10 +108,10 @@ export default {
           this.tip = '删除用户组失败: ' + err.response.data
           this.style = 'color: red;'
         })
-      delete SS.groups
       this.data = []
       await this.tree()
       this.loading = false
+      this.message = ''
     },
     async tree() {
       try {
@@ -111,31 +120,29 @@ export default {
           url: `/user/admin?id=${encodeURIComponent(SS.group)}&group=1`,
           headers: { 'token': SS.token }
         })
-        for (const g in resp.data) {
-          if (g === '/') continue
-          const y = g.split('/')[1]
-          if (this.data.length === 0) this.data = [{ name: y, group: g, children: []}]
-          for (let i = 0; i < this.data.length; i++) {
-            if (y === this.data[i].name) {
-              let cl = { 
-                name: g,
-                group: g
-              }
-              this.data[i]['children'].push(cl)
-              this.map[g] = []
-              for (const s in resp['data'][g]) {
-                const stu = {
-                  name: resp['data'][g][s],
-                  id: s
-                }
-                this.map[g].push(stu)
-              }
-              cl['name'] += `(${this.map[g].length})`
-              break
-            } else {
-              this.data.push({ name: y, children: []})
-              i--
-            }
+        this.map = resp.data
+        let item = resp.data
+        for (let key in item) {
+          if (key === '/') continue
+          const array = key.split('/')
+          array.shift()
+          array.pop()
+          if (array === undefined) continue
+          let parent = '/'
+          // traverse tree to find where to insert
+          let a = this.traverse(array, 0, this.data)
+          a
+          let i = a['index']
+          let temp = a['root']
+          for (let j = 0; j < i; j++) {
+            parent = parent + array[j] + '/'
+          }
+          for (;i < array.length; i++) {
+            let o = { 'name': parent + array[i] + '/', 'short': array[i], 'children': [] }
+            temp.push(o)
+            parent = o.name
+            temp = o['children']
+            if (i === array.length - 1) o['leaf'] = true
           }
         }
       } catch (err) {
