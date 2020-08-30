@@ -8,7 +8,7 @@
       hoverable
     >
       <template v-slot:append="{ item }">
-        <v-btn text v-if="item.leaf" @click="show(item)">
+        <v-btn text v-if="map[item['name']]" @click="show(item)">
           {{ Object.keys(map[item['name']]).length }}
         </v-btn>
         <v-btn icon v-if="!item.id" @click="dialog = true; message = item.name" color="error">
