@@ -1,6 +1,6 @@
 <template>
   <div class="group">
-    <h2 v-if="!data.length">正在获取数据...</h2>
+    <h2 v-if="!data.length">{{ title }}</h2>
     <p v-else>右侧数字为用户组中的用户数，点击数字可查看用户姓名列表</p>
     <v-treeview
       :items="data"
@@ -39,7 +39,7 @@
     <v-dialog v-model="dialog" max-width="290">
       <v-card>
         <v-card-title>删除用户组</v-card-title>
-        <v-card-text>您正在进行危险操作，删除用户组将会删除所有子用户组和所有用户！请输入<code>{{ message }}</code>来确认删除</v-card-text>
+        <v-card-text>您正在进行危险操作，删除用户组将会删除所有子用户组和所有用户！<br>请输入<code>{{ message }}</code>来确认删除</v-card-text>
         <v-text-field outlined dense style="width:85%; margin-left: 7.5%" v-model="text"></v-text-field>
         <v-card-text :style="style">{{ tip }}</v-card-text>
         <v-card-actions>
@@ -68,7 +68,10 @@ export default {
     text: '',
     error: '',
     tip: '',
-    style: ''
+    style: '',
+    groupArray: [],
+    visited: {},
+    title: '正在加载数据...'
   }),
   mounted() { 
     this.tree()
@@ -78,19 +81,6 @@ export default {
       this.sheet = false
       this.list = []
       this.$emit('user', item)
-    },
-    parseTree() {
-    },
-    traverse(array, index, root) {
-      if (root === undefined) {
-        root = []
-      }
-      for (let i = 0; i < root.length; i++) {
-        if (root[i]['short'] === array[index]) {
-          return this.traverse(array, index + 1, root[i]['children'])
-        }
-      }
-      return {'index': index, 'root': root}
     },
     show(item) {
       this.sheet = true
@@ -113,7 +103,7 @@ export default {
       this.loading = false
       this.message = ''
     },
-    async tree() {
+    async getTree() {
       try {
         const resp = await this.$ajax({
           method: 'GET',
@@ -121,33 +111,38 @@ export default {
           headers: { 'token': SS.token }
         })
         this.map = resp.data
-        let item = resp.data
-        for (let key in item) {
-          if (key === '/') continue
-          const array = key.split('/')
-          array.shift()
-          array.pop()
-          if (array === undefined) continue
-          let parent = '/'
-          // traverse tree to find where to insert
-          let a = this.traverse(array, 0, this.data)
-          a
-          let i = a['index']
-          let temp = a['root']
-          for (let j = 0; j < i; j++) {
-            parent = parent + array[j] + '/'
-          }
-          for (;i < array.length; i++) {
-            let o = { 'name': parent + array[i] + '/', 'short': array[i], 'children': [] }
-            temp.push(o)
-            parent = o.name
-            temp = o['children']
-            if (i === array.length - 1) o['leaf'] = true
-          }
-        }
+        return true
       } catch (err) {
-        console.log(err)
+        this.title = err.response.data
+        return false
       }
+    },
+    parseTree (x) { // process the object of groupArray[x]
+      this.visited[x] = true
+      const g = this.groupArray[x]
+      let res = { name: g, children: [] }
+      for (let i = x + 1; i < this.groupArray.length; i++) {
+        if (this.visited[i]) break;
+        if (this.groupArray[i].indexOf(g) === 0) {
+          res.children.push(this.parseTree(i))
+        }
+      }
+      return res
+    },
+    async tree() {
+      if (!await this.getTree()) return
+      let groupSet = new Set()
+      for (const g in this.map) {
+        const levels = g.substr(SS.group.length).split('/')
+        let cur = SS.group
+        groupSet.add(cur)
+        for (let i = 0; i < levels.length - 1; i++) {
+          cur += levels[i] + '/'
+          groupSet.add(cur)
+        }
+      }
+      this.groupArray = Array.from(groupSet).sort()
+      this.data = this.parseTree(0).children
     }
   }
 }
