@@ -50,6 +50,12 @@ export default {
     id: ''
   }),
   props: ['uid', 'random'],
+  mounted () {
+    if (this.uid) {
+      this.id = this.uid
+      this.search()
+    }
+  },
   watch: {
     identifier () {
       this.error = ''

@@ -48,7 +48,7 @@ export default {
     user (uid) {
       this.tab = 2
       this.uid = uid
-      this.random = Math.random()
+      this.random++
     }
   }
 }
