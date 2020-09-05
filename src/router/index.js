@@ -20,6 +20,16 @@ Vue.use(VueRouter)
     name: 'Admin',
     component: () => import (/* webpackChunkName: "admin" */ '../views/Admin.vue')
   },
+  {
+    path: '/reset',
+    name: 'Reset',
+    component: () => import (/* webpackChunkName: "reset" */ '../views/Reset.vue')
+  },
+  {
+    path: '/phone',
+    name: 'Phone',
+    component: () => import (/* webpackChunkName: "phone" */ '../views/Phone.vue')
+  },
 ]
 
 const router = new VueRouter({

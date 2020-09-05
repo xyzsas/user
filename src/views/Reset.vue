@@ -1,5 +1,5 @@
 <template>
-  <div class="login">
+  <div class="reset">
     <v-card class="form" :style="formStyle">
       <h1>学生事务系统</h1>
       <h3>{{ tip }}</h3>
@@ -7,7 +7,6 @@
       <v-btn :disabled="!input" fab color="primary" @click="next" :loading="loading">
         <v-icon>{{ icon }}</v-icon>
       </v-btn>
-      <div @click="reset" style="color: #BDBDBD; font-size: 0.75rem; position: absolute; right: 10px; bottom: 5px; cursor: pointer;">重置密码</div>
     </v-card>
   </div>
 </template>
@@ -19,16 +18,8 @@ function hash1 (msg) {
   return new Hashes.MD5().b64(msg).substr(7, 10)
 }
 
-function sha256 (msg) {
-  return new Hashes.SHA256().b64(msg)
-}
-
-function hash2 (msg) {
-  return sha256(msg + 'XYZSAS_STATIC_SALT')
-}
-
 export default {
-  name: 'Login',
+  name: 'Reset',
   data: () => ({
     loading: false,
     success: false,
@@ -36,32 +27,32 @@ export default {
     formStyle: '',
     input: '',
     step: 'username',
-    random: ''
+    random: '',
+    id: '',
+    message: ''
   }),
   computed: {
     tip () {
-      if (this.step === 'username') return '登录'
-      else return '输入密码'
+      if (this.step === 'username') return '重置密码'
+      else return '输入验证码'
     },
     label () {
       if (this.step === 'username') return '用户名'
-      else return '密码'
+      else return '验证码'
     },
     icon () {
       if (this.step === 'username') return 'mdi-arrow-right'
       else return 'mdi-check'
     },
     messages () {
+      if (this.step === 'number' && this.message && !this.success) return this.message
       if (!this.loading) return ''
-      if (this.success) return '登录成功，正在跳转...'
+      if (this.success) return '成功重置密码为用户名，请重新登录'
       if (this.step === 'username') return '安全检查中，请耐心等待'
       else return '正在验证您的身份...'
     }
   },
   methods: {
-    reset () {
-      this.$router.push('reset')
-    },
     async next () {
       this.loading = true
       this.error = ''
@@ -69,45 +60,44 @@ export default {
       else await this.password()
       this.loading = false
     },
+    async sendCode () {
+      try {
+        const res = await this.$ajax.get('/user/phone?id=' + encodeURIComponent(this.id))
+        this.message = res.data
+        return true
+      } catch (err) {
+        this.error = '网络错误'
+        if (err.response) this.error = err.response.data
+        return false
+      }
+    }, 
     async username () {
       this.input = this.input.toUpperCase()
-      const id = hash1(this.input)
-      try {
-        const res = await this.$ajax.get('/user/auth?id=' + encodeURIComponent(id))
-        this.random = res.data;
-      } catch {
-        this.error = '网络错误，请稍后重试'
-        return
-      }
+      this.id = hash1(this.input)
+      if (!await this.sendCode()) return
       this.formStyle = 'opacity: 0;'
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 1000))
       this.input = ''
-      this.step = 'password'
+      this.step = 'number'
+      this.message = ''
       this.$nextTick(() => this.$refs.input.focus())
       this.formStyle = ''
     },
     async password () {
       try {
-        const { data } = await this.$ajax.post('/user/auth', {
-          random: this.random,
-          password: sha256(hash2(this.input) + this.random)
+        await this.$ajax.post('/user/phone', {
+          id: this.id,
+          code: this.input
         })
-        const SS = window.sessionStorage
-        SS.token = data.token
-        SS.name = data.user.name
-        SS.id = data.user.id
-        SS.group = data.user.group
-        SS.role = data.user.role
-        SS.phone = data.user.phone
         this.success = true
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 3000));
         this.formStyle = 'opacity: 0;'
         await new Promise(r => setTimeout(r, 500));
-        window.location.href = this.$route.query.c || '/'
+        window.location.href = '/'
       } catch (err) {
         this.error = '网络错误'
         if (err.response) this.error = err.response.data
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 7000));
         this.formStyle = 'opacity: 0;'
         await new Promise(r => setTimeout(r, 1000));
         this.error = ''
@@ -121,7 +111,7 @@ export default {
 </script>
 
 <style scoped>
-  div.login {
+  div.reset {
     color: #333;
     background: #F2F2F2;
     width: 100%;
@@ -144,7 +134,6 @@ export default {
     height: 310px;
     padding: 30px 100px;
     margin-bottom: 50px;
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
