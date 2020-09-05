@@ -39,7 +39,7 @@ export default {
     async next () {
       this.loading = true
       try {
-        const res = await this.$ajax.put('/user/phone', {
+        const res = await this.$ajax.put('/phone', {
           phone: this.input
         }, { headers: { token: SS.token }})
         this.message = res.data
