@@ -62,7 +62,7 @@ export default {
     },
     async sendCode () {
       try {
-        const res = await this.$ajax.get('/user/phone?id=' + encodeURIComponent(this.id))
+        const res = await this.$ajax.get('/phone?id=' + encodeURIComponent(this.id))
         this.message = res.data
         return true
       } catch (err) {

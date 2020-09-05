@@ -73,7 +73,7 @@ export default {
       if (this.identifier) this.id = hash1(this.identifier)
       this.searchLoading = true
       await this.$ajax
-        .get('/user/admin?id=' + encodeURIComponent(this.id), { headers: { 'token': SS.token } })
+        .get('/admin/user?id=' + encodeURIComponent(this.id), { headers: { 'token': SS.token } })
         .then(resp => {
           this.user = resp.data
           if (!this.identifier) this.identifier = this.user.identifier
@@ -92,7 +92,7 @@ export default {
       }
       if (this.reset) body['password'] = "1"
       try {
-        await this.$ajax.put('/user/admin?id=' + encodeURIComponent(this.id), body, {
+        await this.$ajax.put('/admin/user?id=' + encodeURIComponent(this.id), body, {
             headers: { 'token': SS.token }
           })
         this.tip = '更新用户信息成功!'
@@ -107,7 +107,7 @@ export default {
       this.tip = '正在删除用户'
       this.submitLoading = true
       await this.$ajax
-        .delete('/user/admin?id=' + encodeURIComponent(this.id), { headers: { 'token': SS.token } })
+        .delete('/admin/user?id=' + encodeURIComponent(this.id), { headers: { 'token': SS.token } })
         .then(() => {
           this.tip = '删除用户成功!'
           this.style = 'color: green;'

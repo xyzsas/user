@@ -81,7 +81,7 @@ export default {
           }
         }
         if (!cot) break
-        const res = await this.$ajax.post('/user/admin', payload, {
+        const res = await this.$ajax.post('/admin/user', payload, {
           headers: { token: SS.token }
         })
           .then(resp => {

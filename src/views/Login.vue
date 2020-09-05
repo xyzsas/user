@@ -73,7 +73,7 @@ export default {
       this.input = this.input.toUpperCase()
       const id = hash1(this.input)
       try {
-        const res = await this.$ajax.get('/user/auth?id=' + encodeURIComponent(id))
+        const res = await this.$ajax.get('/auth?id=' + encodeURIComponent(id))
         this.random = res.data;
       } catch {
         this.error = '网络错误，请稍后重试'
@@ -88,7 +88,7 @@ export default {
     },
     async password () {
       try {
-        const { data } = await this.$ajax.post('/user/auth', {
+        const { data } = await this.$ajax.post('/auth', {
           random: this.random,
           password: sha256(hash2(this.input) + this.random)
         })
