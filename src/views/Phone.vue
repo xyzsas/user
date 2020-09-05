@@ -12,13 +12,7 @@
 </template>
 
 <script>
-import Hashes from 'jshashes'
-
 const SS = window.sessionStorage
-
-function hash1 (msg) {
-  return new Hashes.MD5().b64(msg).substr(7, 10)
-}
 
 export default {
   name: 'Phone',
@@ -27,7 +21,6 @@ export default {
     success: false,
     error: '',
     input: SS.phone,
-    id: '',
     message: ''
   }),
   computed: {
@@ -37,27 +30,27 @@ export default {
       else return '正在绑定手机...'
     }
   },
+  watch: {
+    input () {
+      this.error = ''
+    }
+  },
   methods: {
     async next () {
       this.loading = true
-      this.error = ''
-      await this.phone()
-      this.loading = false
-    },
-    async phone () {
-      this.id = hash1(this.input)
       try {
-        const res = await this.$ajax.put('/user/phone?id=' + encodeURIComponent(this.id), {
+        const res = await this.$ajax.put('/user/phone', {
           phone: this.input
-        }, {
-          headers: { token: SS.token }
-        })
+        }, { headers: { token: SS.token }})
         this.message = res.data
-        console.log(res.data)
+        SS.phone = this.input
+        await new Promise(r => setTimeout(r, 1000))
+        window.location.href = '/index.html'
       } catch (err) {
         this.error = '网络错误'
         if (err.response) this.error = err.response.data
       }
+      this.loading = false
     }
   }
 }

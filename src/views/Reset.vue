@@ -7,7 +7,6 @@
       <v-btn :disabled="!input" fab color="primary" @click="next" :loading="loading">
         <v-icon>{{ icon }}</v-icon>
       </v-btn>
-      <v-btn text v-if="step==='password'" @click="sendCode" style="color: #757575; font-size: 0.8rem; position: relative; left: 40%; bottom: 10px;">重新发送</v-btn>
     </v-card>
   </div>
 </template>
@@ -46,7 +45,7 @@ export default {
       else return 'mdi-check'
     },
     messages () {
-      if (this.step === 'password' && this.message && !this.success) return this.message
+      if (this.step === 'number' && this.message && !this.success) return this.message
       if (!this.loading) return ''
       if (this.success) return '成功重置密码为用户名，请重新登录'
       if (this.step === 'username') return '安全检查中，请耐心等待'
@@ -79,7 +78,7 @@ export default {
       this.formStyle = 'opacity: 0;'
       await new Promise(r => setTimeout(r, 1000))
       this.input = ''
-      this.step = 'password'
+      this.step = 'number'
       this.message = ''
       this.$nextTick(() => this.$refs.input.focus())
       this.formStyle = ''
@@ -91,14 +90,14 @@ export default {
           code: this.input
         })
         this.success = true
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 3000));
         this.formStyle = 'opacity: 0;'
         await new Promise(r => setTimeout(r, 500));
         window.location.href = '/'
       } catch (err) {
         this.error = '网络错误'
         if (err.response) this.error = err.response.data
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 7000));
         this.formStyle = 'opacity: 0;'
         await new Promise(r => setTimeout(r, 1000));
         this.error = ''

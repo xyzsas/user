@@ -7,7 +7,7 @@
       <v-btn :disabled="!input" fab color="primary" @click="next" :loading="loading">
         <v-icon>{{ icon }}</v-icon>
       </v-btn>
-      <p v-if="step==='password'" @click="reset" style="color: #BDBDBD; font-size: 0.75rem; position: relative; left: 40%">重置密码</p>
+      <div @click="reset" style="color: #BDBDBD; font-size: 0.75rem; position: absolute; right: 10px; bottom: 5px; cursor: pointer;">重置密码</div>
     </v-card>
   </div>
 </template>
@@ -144,6 +144,7 @@ export default {
     height: 310px;
     padding: 30px 100px;
     margin-bottom: 50px;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
