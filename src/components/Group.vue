@@ -107,7 +107,7 @@ export default {
       try {
         const resp = await this.$ajax({
           method: 'GET',
-          url: `/user/admin?id=${encodeURIComponent(SS.group)}&group=1`,
+          url: `/admin/user?id=${encodeURIComponent(SS.group)}&group=1`,
           headers: { 'token': SS.token }
         })
         this.map = resp.data
