@@ -10,8 +10,8 @@
     <v-card v-if="user" style="padding: 20px 30px;">
       <v-card-title>用户信息</v-card-title>
       <v-card-subtitle>{{ id }}</v-card-subtitle>
-      <v-text-field outlined style="width: 300px;" type="text" v-model="user.name" readonly :disabled="submitLoading" label="姓名"></v-text-field>
-      <v-text-field outlined style="width: 300px;" type="text" v-model="user.group" label="用户组" readonly :disabled="submitLoading"></v-text-field>
+      <v-text-field outlined style="width: 300px;" type="text" v-model="user.name" :disabled="submitLoading" label="姓名"></v-text-field>
+      <v-text-field outlined style="width: 300px;" type="text" v-model="user.group" label="用户组" :disabled="submitLoading"></v-text-field>
       <v-text-field outlined style="width: 300px;" type="text" v-model="user.role" :disabled="submitLoading" label="角色"></v-text-field>
       <v-text-field outlined style="width: 300px;" type="text" v-model="user.phone" :disabled="submitLoading" label="手机"></v-text-field>
       <v-checkbox v-model="reset" :disabled="submitLoading" label="重置密码为用户名"></v-checkbox>
@@ -88,7 +88,8 @@ export default {
       let body = {
         name: this.user.name,
         role: this.user.role,
-        phone: this.user.phone
+        phone: this.user.phone,
+        group: this.user.group
       }
       if (this.reset) body['password'] = "1"
       try {

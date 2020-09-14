@@ -89,7 +89,7 @@ export default {
     async deleteGroup() {
       this.loading = true
       await this.$ajax
-        .delete(`/admin/user?id=${encodeURIComponent(this.message)}&group=1`, { headers: { 'token': SS.token } })
+        .delete(`/admin/user?group=${encodeURIComponent(this.message)}`, { headers: { 'token': SS.token } })
         .then(() => {
           this.tip = '删除用户组成功!'
           this.style = 'color: green;'
@@ -107,7 +107,7 @@ export default {
       try {
         const resp = await this.$ajax({
           method: 'GET',
-          url: `/admin/user?id=${encodeURIComponent(SS.group)}&group=1`,
+          url: `/admin/user?group=${encodeURIComponent(SS.group)}`,
           headers: { 'token': SS.token }
         })
         this.map = resp.data
