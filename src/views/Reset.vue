@@ -85,7 +85,7 @@ export default {
     },
     async password () {
       try {
-        await this.$ajax.post('/user/phone', {
+        await this.$ajax.post('/phone', {
           id: this.id,
           code: this.input
         })

@@ -105,7 +105,7 @@ export default {
         return
       }
       try {
-        await this.$ajax.put('/user/auth', {
+        await this.$ajax.put('/auth', {
           random: this.random,
           password: sha256(hash2(this.Opwd) + this.random),
           newPassword: hash2(this.Npwd)
