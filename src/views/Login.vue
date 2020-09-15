@@ -99,6 +99,8 @@ export default {
         SS.group = data.user.group
         SS.role = data.user.role
         SS.phone = data.user.phone
+        SS.message = JSON.stringify(data.message)
+        console.log(data.message)
         this.success = true
         await new Promise(r => setTimeout(r, 1000));
         this.formStyle = 'opacity: 0;'
