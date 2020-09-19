@@ -45,7 +45,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text color="error" @click="deleteGroup()" :disabled="message!==text" :loading="loading">确定</v-btn>
-          <v-btn text @click="dialog=false">关闭</v-btn>
+          <v-btn text @click="dialog=false; tip = ''; style = ''; text = ''">关闭</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -98,22 +98,29 @@ export default {
           this.tip = '删除用户组失败: ' + err.response.data
           this.style = 'color: red;'
         })
-      this.data = []
-      await this.tree()
+      for (let i = 0; i < this.groupArray.length; i++) {
+        if (this.groupArray[i].includes(this.message)) {
+          this.groupArray.splice(i, 1)
+          i--
+        }
+      }
+      this.visited = {}
+      this.data = this.parseTree(0).children
       this.loading = false
       this.message = ''
     },
     async getTree() {
       try {
-        const resp = await this.$ajax({
+        const { data } = await this.$ajax({
           method: 'GET',
           url: `/admin/user?group=${encodeURIComponent(SS.group)}`,
           headers: { 'token': SS.token }
         })
-        this.map = resp.data
+        this.map = data
         return true
       } catch (err) {
         this.title = err.response.data
+        if (err.response.status === 401) window.location.href = '/'
         return false
       }
     },
@@ -122,7 +129,7 @@ export default {
       const g = this.groupArray[x]
       let res = { name: g, children: [] }
       for (let i = x + 1; i < this.groupArray.length; i++) {
-        if (this.visited[i]) break;
+        if (this.visited[i]) continue;
         if (this.groupArray[i].indexOf(g) === 0) {
           res.children.push(this.parseTree(i))
         }
