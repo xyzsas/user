@@ -15,16 +15,28 @@
       <v-text-field outlined style="width: 300px;" type="text" v-model="user.role" :disabled="submitLoading" label="角色"></v-text-field>
       <v-text-field outlined style="width: 300px;" type="text" v-model="user.phone" :disabled="submitLoading" label="手机"></v-text-field>
       <v-checkbox v-model="reset" :disabled="submitLoading" label="重置密码为用户名"></v-checkbox>
-      <p style="font-size: 0.8rem"  :style="style" v-if="tip">{{ tip }}</p>
+      <p style="font-size: 0.8rem"  :style="style" v-if="tip && !dialog">{{ tip }}</p>
       <v-row style="max-width: 400px;">
         <v-col>
           <v-btn color="secondary" @click="submit" :loading="submitLoading">修改用户信息</v-btn>
         </v-col>
         <v-col>
-          <v-btn color="error" @click="remove" :loading="submitLoading">删除用户</v-btn>
+          <v-btn color="error" @click="dialog = true" :loading="submitLoading">删除用户</v-btn>
         </v-col>
       </v-row>
     </v-card>
+    <v-dialog v-model="dialog" max-width="290">
+      <v-card>
+        <v-card-title>删除用户</v-card-title>
+        <v-card-text>您确认要删除此用户？</v-card-text>
+        <v-card-text :style="style">{{ tip }}</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text color="error" @click="remove" :loading="submitLoading">确定</v-btn>
+          <v-btn text @click="dialog=false; tip = ''; style = ''; text = ''">关闭</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -47,7 +59,8 @@ export default {
     submitLoading: false,
     tip: ' ',
     style: '',
-    id: ''
+    id: '',
+    dialog: false
   }),
   props: ['uid', 'random'],
   mounted () {
