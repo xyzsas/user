@@ -6,6 +6,7 @@
       <v-btn style="margin: 10px;" :loading="loading" color="primary" @click="upload">上传用户信息</v-btn>
     </h2>
     <v-data-table
+      :key="random"
       :headers="headers"
       :items="users"
       class="elevation-1"
@@ -47,6 +48,7 @@ export default {
     message: '',
     loading: false,
     raw: '',
+    random: 0,
     headers: [
       { text: '用户名', value: 'id' },
       { text: '用户组', value: 'group' },
@@ -72,22 +74,19 @@ export default {
       this.loading = true
       for (let i = 0; i < this.users.length; i++) {
         const u = this.users[i]
-        const res = await this.$ajax.put('/admin/user?id=' + encodeURIComponent(hash1(u.id.toUpperCase())), { group: u.group }, {
-          headers: { token: SS.token }
-        })
-          .then( () => {
+        await this.$ajax
+          .put('/admin/user?id=' + encodeURIComponent(hash1(u.id.toUpperCase())), { group: u.group }, {
+            headers: { token: SS.token }
+          })
+          .then(() => {
             this.users.splice(i, 1)
             i--
-            return true
           })
           .catch(err => {
-            this.users[i].status = '错误！'
-            this.message = err.response.data
-            this.dialog = true
-            return false
+            u.status = err.response.data
           })
-        if (!res) break
       }
+      this.random++
       this.loading = false
     }
   }
