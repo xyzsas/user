@@ -105,7 +105,11 @@ export default {
         await new Promise(r => setTimeout(r, 1000));
         this.formStyle = 'opacity: 0;'
         await new Promise(r => setTimeout(r, 500));
-        window.location.href = this.$route.query.c || '/'
+        let url = this.$route.query.c || '/'
+        if (this.$route.query.c === 'AAUTH') {
+          url = 'https://aauth.link/reenter.html?code=' + data.code + '&state=' + this.$route.query.state
+        }
+        window.location.href = url
       } catch (err) {
         this.error = '网络错误'
         if (err.response) this.error = err.response.data
