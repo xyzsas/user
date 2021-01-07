@@ -19,16 +19,6 @@
         <v-btn color="secondary" @click="importRaw">确认</v-btn>
       </v-sheet>
     </v-bottom-sheet>
-    <v-dialog v-model="dialog" max-width="290">
-      <v-card>
-        <v-card-title>用户管理</v-card-title>
-        <v-card-text>{{ message }}</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="dialog = false">确定</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 

@@ -8,7 +8,12 @@ Vue.config.productionTip = false
 
 Vue.prototype.$ajax = axios.create({
   baseURL: 'https://sas.aauth.link/'
-});
+})
+Vue.prototype.$swal = window.Swal
+Vue.prototype.$swal.catch = err => {
+  window.Swal.fire('错误', err.response ? err.response.data : '网络错误', 'error')
+}
+
 
 new Vue({
   router,

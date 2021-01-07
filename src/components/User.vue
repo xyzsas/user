@@ -15,28 +15,15 @@
       <v-text-field outlined style="width: 300px;" type="text" v-model="user.role" :disabled="submitLoading" label="角色"></v-text-field>
       <v-text-field outlined style="width: 300px;" type="text" v-model="user.phone" :disabled="submitLoading" label="手机"></v-text-field>
       <v-checkbox v-model="reset" :disabled="submitLoading" label="重置密码为用户名"></v-checkbox>
-      <p style="font-size: 0.8rem"  :style="style" v-if="tip && !dialog">{{ tip }}</p>
       <v-row style="max-width: 400px;">
         <v-col>
           <v-btn color="secondary" @click="submit" :loading="submitLoading">修改用户信息</v-btn>
         </v-col>
         <v-col>
-          <v-btn color="error" @click="dialog = true" :loading="submitLoading">删除用户</v-btn>
+          <v-btn color="error" @click="remove" :loading="submitLoading">删除用户</v-btn>
         </v-col>
       </v-row>
     </v-card>
-    <v-dialog v-model="dialog" max-width="290">
-      <v-card>
-        <v-card-title>删除用户</v-card-title>
-        <v-card-text>您确认要删除此用户？</v-card-text>
-        <v-card-text :style="style">{{ tip }}</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text color="error" @click="remove" :loading="submitLoading">确定</v-btn>
-          <v-btn text @click="dialog=false; tip = ''; style = ''; text = ''">关闭</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
@@ -57,10 +44,7 @@ export default {
     user: null,
     searchLoading: false,
     submitLoading: false,
-    tip: ' ',
-    style: '',
-    id: '',
-    dialog: false
+    id: ''
   }),
   props: ['uid', 'random'],
   mounted () {
@@ -72,6 +56,7 @@ export default {
   watch: {
     identifier () {
       this.error = ''
+      this.user = null
     },
     random () {
       this.identifier = ''
@@ -96,7 +81,6 @@ export default {
       this.$forceUpdate()
     },
     async submit() {
-      this.tip = '正在更新用户数据...'
       this.submitLoading = true
       let body = {
         name: this.user.name,
@@ -106,30 +90,31 @@ export default {
       }
       if (this.reset) body['password'] = "1"
       try {
-        await this.$ajax.put('/admin/user?id=' + encodeURIComponent(this.id), body, {
-            headers: { 'token': SS.token }
-          })
-        this.tip = '更新用户信息成功!'
-        this.style = 'color: green;'
+        await this.$ajax.put('/admin/user?id=' + encodeURIComponent(this.id), body, { headers: { 'token': SS.token } })
+        this.$swal.fire('成功', '用户信息修改成功', 'success')
+        this.search()
       } catch (err) {
-        this.tip = '更新用户信息失败: ' + err.response.data
-        this.style = 'color: red;'
+        this.$swal.fire('错误', err.response ? err.response.data : '网络错误', 'error')
       }
       this.submitLoading = false
     },
     async remove () {
-      this.tip = '正在删除用户'
+      const res = await this.$swal.fire({
+        title: '确认删除用户？',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消'
+      }).then(res => res.isConfirmed)
+      if (!res) return
       this.submitLoading = true
       await this.$ajax
         .delete('/admin/user?id=' + encodeURIComponent(this.id), { headers: { 'token': SS.token } })
         .then(() => {
-          this.tip = '删除用户成功!'
-          this.style = 'color: green;'
+          this.$swal.fire('成功', '删除用户成功', 'success')
+          this.identifier = ''
         })
-        .catch(err => {
-          this.tip = '删除用户失败: ' + err.response.data
-          this.style = 'color: red;'
-        })
+        .catch(this.$swal.catch)
       this.submitLoading = false
     }
   }
